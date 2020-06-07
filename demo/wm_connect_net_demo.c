@@ -4,9 +4,9 @@
 #include "wm_wifi_oneshot.h"
 
 #if DEMO_CONNECT_NET
-static void con_net_status_changed_event(u8 status )
+static void con_net_status_changed_event(u8 status)
 {
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_SUCCESS:
         printf("NETIF_WIFI_JOIN_SUCCESS\n");
@@ -58,7 +58,6 @@ int demo_webserver_config(void)
     return 0;
 }
 
-
 //acitve connect to specified AP, use command as: t-connet("ssid","pwd");
 int demo_connect_net(char *ssid, char *pwd)
 {
@@ -74,12 +73,12 @@ int demo_connect_net(char *ssid, char *pwd)
     printf("password=%s\n", pwd);
     tls_wifi_disconnect();
 
-    tls_param_get(TLS_PARAM_ID_WPROTOCOL, (void *) &wireless_protocol, TRUE);
+    tls_param_get(TLS_PARAM_ID_WPROTOCOL, (void *)&wireless_protocol, TRUE);
     if (TLS_PARAM_IEEE80211_INFRA != wireless_protocol)
     {
         tls_wifi_softap_destroy();
         wireless_protocol = TLS_PARAM_IEEE80211_INFRA;
-        tls_param_set(TLS_PARAM_ID_WPROTOCOL, (void *) &wireless_protocol, FALSE);
+        tls_param_set(TLS_PARAM_ID_WPROTOCOL, (void *)&wireless_protocol, FALSE);
     }
 
     tls_wifi_set_oneshot_flag(0);
@@ -100,4 +99,3 @@ int demo_connect_net(char *ssid, char *pwd)
     return WM_SUCCESS;
 }
 #endif
-

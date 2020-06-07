@@ -5,15 +5,12 @@
 
 #if DEMO_RTC
 
-
-
 static void demo_rtc_clock_irq(void *arg)
 {
     struct tm tblock;
     tls_get_rtc(&tblock);
     printf("rtc clock, sec=%d,min=%d,hour=%d,mon=%d,year=%d\n", tblock.tm_sec, tblock.tm_min, tblock.tm_hour, tblock.tm_mon, tblock.tm_year);
 }
-
 
 int rtc_demo(void)
 {
@@ -36,7 +33,7 @@ int rtc_demo(void)
     tblock.tm_sec = 20;
     tls_rtc_timer_start(&tblock);
 
-    while(1)
+    while (1)
     {
         tls_os_time_delay(200);
         tls_get_rtc(&tblock);
@@ -46,9 +43,4 @@ int rtc_demo(void)
     return WM_SUCCESS;
 }
 
-
-
 #endif
-
-
-

@@ -16,7 +16,7 @@
 #include "wm_include.h"
 
 #if DEMO_UDP_MULTI_CAST
-#define    DEMO_MCAST_TASK_SIZE      256
+#define DEMO_MCAST_TASK_SIZE 256
 tls_os_queue_t *demo_mcast_q = NULL;
 static OS_STK DemoMCastTaskStk[DEMO_MCAST_TASK_SIZE];
 u8 is_snd = 1;
@@ -26,7 +26,7 @@ static void demo_mcast_task(void *sdata);
 
 #define MPORT 5100
 static u8 MCASTIP[4] = {224, 1, 2, 1};
-#define MCAST_BUF_SIZE	1024
+#define MCAST_BUF_SIZE 1024
 int mcastsendrcv(bool snd)
 {
     int s;
@@ -42,7 +42,7 @@ int mcastsendrcv(bool snd)
     struct ip_mreq mreq;
 
     s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if(s < 0)
+    if (s < 0)
     {
         printf("socket error");
         return -1;
@@ -59,19 +59,19 @@ int mcastsendrcv(bool snd)
     fromaddr.sin_port = htons(MPORT);
     fromaddr.sin_addr.s_addr = htonl(0x00000000UL);
     ret = bind(s, (struct sockaddr *)&localaddr, sizeof(localaddr));
-    if(ret < 0)
+    if (ret < 0)
     {
         printf("bind error");
         return -1;
     }
     //Configure multicast TTL
-    if(setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0)
+    if (setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0)
     {
         printf("IP_MULTICAST_TTL");
         return -1;
     }
     //Setting local loop for multicast
-    if(setsockopt(s, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0)
+    if (setsockopt(s, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop)) < 0)
     {
         printf("IP_MULTICAST_LOOP");
         return -1;
@@ -79,19 +79,19 @@ int mcastsendrcv(bool snd)
     MEMCPY((char *)&mreq.imr_multiaddr.s_addr, (char *)MCASTIP, 4);
     mreq.imr_interface.s_addr = htonl(0x00000000UL);
     //join multicast group
-    if(setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
+    if (setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
     {
         printf("IP_ADD_MEMBERSHIP");
         return -1;
     }
     buffer = tls_mem_alloc(MCAST_BUF_SIZE);
-    if(NULL == buffer)
+    if (NULL == buffer)
         return -1;
     memset(buffer, 0, MCAST_BUF_SIZE);
     //loop rx or tx data
-    if(snd)
+    if (snd)
     {
-        for(times = 0; times < 20; times++)
+        for (times = 0; times < 20; times++)
         {
             memset(buffer, i, MCAST_BUF_SIZE);
             size = sendto(s, buffer, MCAST_BUF_SIZE, 0, (struct sockaddr *)&Multi_addr, sizeof(Multi_addr));
@@ -103,7 +103,7 @@ int mcastsendrcv(bool snd)
     }
     else
     {
-        for(times = 0; times < 5; times++)
+        for (times = 0; times < 5; times++)
         {
             socklen = sizeof(fromaddr);
             recvfrom(s, buffer, MCAST_BUF_SIZE, 0, (struct sockaddr *)&fromaddr, &socklen);
@@ -114,7 +114,7 @@ int mcastsendrcv(bool snd)
     tls_mem_free(buffer);
     //leave multicast group
     ret = setsockopt(s, IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
-    if(ret < 0)
+    if (ret < 0)
     {
         printf("IP_DROP_MEMBERSHIP");
         return -1;
@@ -125,7 +125,7 @@ int mcastsendrcv(bool snd)
 
 int CreateMCastDemoTask(char *buf)
 {
-    if(strstr(buf, "recv"))
+    if (strstr(buf, "recv"))
     {
         is_snd = 0;
     }
@@ -145,10 +145,9 @@ int CreateMCastDemoTask(char *buf)
     return WM_SUCCESS;
 }
 
-
-static void mcast_net_status_changed_event(u8 status )
+static void mcast_net_status_changed_event(u8 status)
 {
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_FAILED:
         tls_os_queue_send(demo_mcast_q, (void *)DEMO_MSG_WJOIN_FAILD, 0);
@@ -172,7 +171,7 @@ static void demo_mcast_task(void *sdata)
 
     printf("\nmcast task\n");
 
-    if(ethif->status)	/*connected to ap and get IP*/
+    if (ethif->status) /*connected to ap and get IP*/
     {
         tls_os_queue_send(demo_mcast_q, (void *)DEMO_MSG_SOCKET_CREATE, 0);
     }
@@ -183,16 +182,16 @@ static void demo_mcast_task(void *sdata)
         tls_param_get(TLS_PARAM_ID_IP, &ip_param, TRUE);
         ip_param.dhcp_enable = TRUE;
         tls_param_set(TLS_PARAM_ID_IP, &ip_param, TRUE);
-        tls_wifi_set_oneshot_flag(1);		/*Enable oneshot configuration*/
+        tls_wifi_set_oneshot_flag(1); /*Enable oneshot configuration*/
         printf("\nwait one shot......\n");
     }
     tls_netif_add_status_event(mcast_net_status_changed_event);
 
-    for(;;)
+    for (;;)
     {
         tls_os_queue_receive(demo_mcast_q, (void **)&msg, 0, 0);
         //printf("\n msg =%d\n",msg);
-        switch((u32)msg)
+        switch ((u32)msg)
         {
         case DEMO_MSG_WJOIN_SUCCESS:
             break;
@@ -212,8 +211,6 @@ static void demo_mcast_task(void *sdata)
             break;
         }
     }
-
 }
 
 #endif
-

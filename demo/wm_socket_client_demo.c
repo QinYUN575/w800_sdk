@@ -13,17 +13,14 @@
 #include "wm_demo.h"
 
 #if DEMO_STD_SOCKET_CLIENT
-#define     DEMO_SOCK_C_TASK_SIZE      		512
-#define     DEMO_SOCK_BUF_SIZE            	512
+#define DEMO_SOCK_C_TASK_SIZE 512
+#define DEMO_SOCK_BUF_SIZE 512
 
-#define		DEMO_SOCK_MSG_UART_RX			1
-#define		DEMO_SOCK_MSG_UART_OFF			2
+#define DEMO_SOCK_MSG_UART_RX 1
+#define DEMO_SOCK_MSG_UART_OFF 2
 
-
-
-static OS_STK   sock_c_task_stk[DEMO_SOCK_C_TASK_SIZE];
-static OS_STK   sock_c_rcv_task_stk[DEMO_SOCK_C_TASK_SIZE];
-
+static OS_STK sock_c_task_stk[DEMO_SOCK_C_TASK_SIZE];
+static OS_STK sock_c_rcv_task_stk[DEMO_SOCK_C_TASK_SIZE];
 
 /**
  * @typedef struct demo_sock_c
@@ -51,16 +48,13 @@ typedef struct demo_sockc_uart
     u16 rxlen;
 } ST_Demo_Sockc_uart;
 
-
 ST_Demo_Sock_C *demo_sock_c = NULL;
 
 tls_os_queue_t *demo_sockc_q = NULL;
 
 ST_Demo_Sockc_uart demo_sockc_uart = {0};
 
-
 static void demo_sock_c_task(void *sdata);
-
 
 int create_client_socket_demo(void)
 {
@@ -94,9 +88,9 @@ int socket_client_demo(void)
     struct tls_ethif *ethif;
 
     ethif = tls_netif_get_ethif();
-    printf("\nip=%d.%d.%d.%d\n",  ip4_addr1(ip_2_ip4(&ethif->ip_addr)), ip4_addr2(ip_2_ip4(&ethif->ip_addr)),
-           ip4_addr3(ip_2_ip4(&ethif->ip_addr)), ip4_addr4(ip_2_ip4(&ethif->ip_addr)));
+    printf("\nip=%d.%d.%d.%d\n", ip4_addr1(ip_2_ip4(&ethif->ip_addr)), ip4_addr2(ip_2_ip4(&ethif->ip_addr)),
 
+           ip4_addr3(ip_2_ip4(&ethif->ip_addr)), ip4_addr4(ip_2_ip4(&ethif->ip_addr)));
 
     return create_client_socket_demo();
 }
@@ -106,18 +100,18 @@ static void sock_client_recv_task(void *sdata)
     ST_Demo_Sock_C *sock_c = (ST_Demo_Sock_C *)sdata;
     int ret = 0;
 
-    for(;;)
+    for (;;)
     {
         if (sock_c->socket_ok)
         {
             ret = 0;
             ret = recv(sock_c->socket_num, sock_c->sock_rx, DEMO_SOCK_BUF_SIZE, 0);
 
-            if(ret > 0)
+            if (ret > 0)
             {
                 sock_c->rcv_data_len += ret;
 
-                if(sock_c->uart_trans)
+                if (sock_c->uart_trans)
                 {
                     tls_uart_write(TLS_UART_1, sock_c->sock_rx, ret);
                 }
@@ -155,10 +149,10 @@ int sck_c_send_data_demo(int len, int uart_trans)
 
     demo_sock_c->snd_data_len = len;
 
-    if(demo_sock_c->uart_trans && (0 == uart_trans))
+    if (demo_sock_c->uart_trans && (0 == uart_trans))
     {
         demo_sock_c->uart_trans = uart_trans;
-        tls_os_queue_send(demo_sockc_q, (void *) DEMO_SOCK_MSG_UART_OFF, 0);
+        tls_os_queue_send(demo_sockc_q, (void *)DEMO_SOCK_MSG_UART_OFF, 0);
     }
 
     demo_sock_c->uart_trans = uart_trans;
@@ -171,11 +165,10 @@ int sck_c_send_data_demo(int len, int uart_trans)
 static s16 demo_sockc_rx(u16 len)
 {
     demo_sockc_uart.rxlen += len;
-    tls_os_queue_send(demo_sockc_q, (void *) DEMO_SOCK_MSG_UART_RX, 0);
+    tls_os_queue_send(demo_sockc_q, (void *)DEMO_SOCK_MSG_UART_RX, 0);
 
     return 0;
 }
-
 
 int Socket_Client_Demo(int port, char *ip)
 {
@@ -217,14 +210,14 @@ int Socket_Client_Demo(int port, char *ip)
         tls_os_queue_create(&demo_sockc_q, DEMO_QUEUE_SIZE);
 
         tls_uart_set_baud_rate(TLS_UART_1, 115200);
-        tls_uart_rx_callback_register(TLS_UART_1, (s16(*)(u16, void*))demo_sockc_rx,NULL);
+        tls_uart_rx_callback_register(TLS_UART_1, (s16(*)(u16, void *))demo_sockc_rx, NULL);
 
         //deal with socket's message
         tls_os_task_create(NULL, NULL,
                            demo_sock_c_task,
                            (void *)demo_sock_c,
-                           (void *)sock_c_task_stk, /* task's stack start address */
-                           DEMO_SOCK_C_TASK_SIZE*sizeof(u32),   /* task's stack size, unit:byte */
+                           (void *)sock_c_task_stk,             /* task's stack start address */
+                           DEMO_SOCK_C_TASK_SIZE * sizeof(u32), /* task's stack size, unit:byte */
                            DEMO_SOCKET_C_TASK_PRIO,
                            0);
 
@@ -232,8 +225,8 @@ int Socket_Client_Demo(int port, char *ip)
         tls_os_task_create(NULL, NULL,
                            sock_client_recv_task,
                            (void *)demo_sock_c,
-                           (void *)sock_c_rcv_task_stk, /* task's stack start address */
-                           DEMO_SOCK_C_TASK_SIZE*sizeof(u32),       /* task's stack size, unit:byte */
+                           (void *)sock_c_rcv_task_stk,         /* task's stack start address */
+                           DEMO_SOCK_C_TASK_SIZE * sizeof(u32), /* task's stack size, unit:byte */
                            DEMO_SOCKET_RECEIVE_TASK_PRIO,
                            0);
     }
@@ -252,10 +245,9 @@ _error:
     return WM_FAILED;
 }
 
-
-static void sock_c_net_status_changed_event(u8 status )
+static void sock_c_net_status_changed_event(u8 status)
 {
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_FAILED:
         tls_os_queue_send(demo_sock_c->sock_c_q, (void *)DEMO_MSG_WJOIN_FAILD, 0);
@@ -282,10 +274,9 @@ static void demo_sock_c_task(void *sdata)
     u16 offset = 0;
     u16 readlen = 0;
 
-
     printf("\nsock c task\n");
 
-    if(ethif->status)	/*connected to ap and get IP*/
+    if (ethif->status) /*connected to ap and get IP*/
     {
         tls_os_queue_send(sock_c->sock_c_q, (void *)DEMO_MSG_SOCKET_CREATE, 0);
     }
@@ -296,7 +287,7 @@ static void demo_sock_c_task(void *sdata)
         tls_param_get(TLS_PARAM_ID_IP, &ip_param, TRUE);
         ip_param.dhcp_enable = TRUE;
         tls_param_set(TLS_PARAM_ID_IP, &ip_param, TRUE);
-        tls_wifi_set_oneshot_flag(1);		/*Enable oneshot configuration*/
+        tls_wifi_set_oneshot_flag(1); /*Enable oneshot configuration*/
         printf("\nwait one shot......\n");
     }
     tls_netif_add_status_event(sock_c_net_status_changed_event);
@@ -305,7 +296,7 @@ static void demo_sock_c_task(void *sdata)
     {
         tls_os_queue_receive(sock_c->sock_c_q, (void **)&msg, 0, 0);
         //printf("\n msg =%d\n",msg);
-        switch((u32)msg)
+        switch ((u32)msg)
         {
         case DEMO_MSG_WJOIN_SUCCESS:
             break;
@@ -315,7 +306,7 @@ static void demo_sock_c_task(void *sdata)
             break;
 
         case DEMO_MSG_WJOIN_FAILD:
-            if(sock_c->socket_num > 0)
+            if (sock_c->socket_num > 0)
             {
                 sock_c->socket_num = 0;
                 sock_c->socket_ok = FALSE;
@@ -327,25 +318,24 @@ static void demo_sock_c_task(void *sdata)
 
         case DEMO_MSG_UART_RECEIVE_DATA:
 
-            while(sock_c->uart_trans)
+            while (sock_c->uart_trans)
             {
-                tls_os_queue_receive(demo_sockc_q, (void **) &uart_msg, 0, 0);
+                tls_os_queue_receive(demo_sockc_q, (void **)&uart_msg, 0, 0);
 
-                if((u32)uart_msg != DEMO_SOCK_MSG_UART_RX)
+                if ((u32)uart_msg != DEMO_SOCK_MSG_UART_RX)
                 {
                     continue;
                 }
 
-                readlen = (demo_sockc_uart.rxlen > DEMO_SOCK_BUF_SIZE) ?
-                          DEMO_SOCK_BUF_SIZE : demo_sockc_uart.rxlen;
+                readlen = (demo_sockc_uart.rxlen > DEMO_SOCK_BUF_SIZE) ? DEMO_SOCK_BUF_SIZE : demo_sockc_uart.rxlen;
                 demo_sockc_uart.rxbuf = tls_mem_alloc(readlen);
-                if(demo_sockc_uart.rxbuf == NULL)
+                if (demo_sockc_uart.rxbuf == NULL)
                 {
                     printf("demo_socks_uart->rxbuf malloc err\n");
                     continue;
                 }
                 ret = tls_uart_read(TLS_UART_1, demo_sockc_uart.rxbuf, readlen);
-                if(ret < 0)
+                if (ret < 0)
                 {
                     tls_mem_free(demo_sockc_uart.rxbuf);
                     continue;
@@ -359,8 +349,7 @@ static void demo_sock_c_task(void *sdata)
                     ret = send(sock_c->socket_num, demo_sockc_uart.rxbuf + offset, readlen, 0);
                     offset += ret;
                     readlen -= ret;
-                }
-                while(readlen);
+                } while (readlen);
                 tls_mem_free(demo_sockc_uart.rxbuf);
             }
 
@@ -368,10 +357,9 @@ static void demo_sock_c_task(void *sdata)
             {
                 len = DEMO_SOCK_BUF_SIZE;
             }
-            else if(sock_c->snd_data_len != 0)
+            else if (sock_c->snd_data_len != 0)
             {
-                len = (sock_c->snd_data_len > DEMO_SOCK_BUF_SIZE) ?
-                      DEMO_SOCK_BUF_SIZE : sock_c->snd_data_len;
+                len = (sock_c->snd_data_len > DEMO_SOCK_BUF_SIZE) ? DEMO_SOCK_BUF_SIZE : sock_c->snd_data_len;
             }
             else
             {
@@ -397,14 +385,13 @@ static void demo_sock_c_task(void *sdata)
         case DEMO_MSG_SOCKET_ERR:
             tls_os_time_delay(200);
             printf("\nsocket err\n");
-            create_client_socket_demo( );
+            create_client_socket_demo();
             break;
 
         default:
             break;
         }
     }
-
 }
 
 #endif

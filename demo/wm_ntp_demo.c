@@ -30,7 +30,7 @@ static void setAutoConnectMode(void)
     u8 auto_reconnect = 0xff;
 
     tls_wifi_auto_connect_flag(WIFI_AUTO_CNT_FLAG_GET, &auto_reconnect);
-    if(auto_reconnect != WIFI_AUTO_CNT_ON)
+    if (auto_reconnect != WIFI_AUTO_CNT_ON)
     {
         auto_reconnect = WIFI_AUTO_CNT_ON;
         tls_wifi_auto_connect_flag(WIFI_AUTO_CNT_FLAG_SET, &auto_reconnect);
@@ -40,11 +40,11 @@ static void setAutoConnectMode(void)
 //You should config ssid and pwd first before run ntp_demo.
 int ntp_demo(void)
 {
-    unsigned int t;	//used to save time relative to 1970
+    unsigned int t; //used to save time relative to 1970
     struct tm *tblock;
 
     setAutoConnectMode();
-    while(1 != isNetworkOk())
+    while (1 != isNetworkOk())
     {
         tls_os_time_delay(HZ);
         printf("waiting for wifi connected......\n");
@@ -53,13 +53,12 @@ int ntp_demo(void)
     t = tls_ntp_client();
 
     printf("now Time :   %s\n", ctime((const time_t *)&t));
-    tblock = localtime((const time_t *)&t);	//switch to local time
+    tblock = localtime((const time_t *)&t); //switch to local time
     //printf(" sec=%d,min=%d,hour=%d,mon=%d,year=%d\n",tblock->tm_sec,tblock->tm_min,tblock->tm_hour,tblock->tm_mon,tblock->tm_year);
     tls_set_rtc(tblock);
 
     return WM_SUCCESS;
 }
-
 
 int ntp_set_server_demo(char *ipaddr1, char *ipaddr2, char *ipaddr3)
 {
@@ -72,12 +71,12 @@ int ntp_set_server_demo(char *ipaddr1, char *ipaddr2, char *ipaddr3)
     }
     if (ipaddr2)
     {
-        tls_ntp_set_server(ipaddr2, server_no ++);
+        tls_ntp_set_server(ipaddr2, server_no++);
         printf("ntp server %d:%s\n", server_no, ipaddr2);
     }
     if (ipaddr3)
     {
-        tls_ntp_set_server(ipaddr3, server_no ++);
+        tls_ntp_set_server(ipaddr3, server_no++);
         printf("ntp server %d:%s\n", server_no, ipaddr3);
     }
 

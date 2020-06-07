@@ -25,23 +25,23 @@
 
 #if DEMO_HTTPS
 
-#define HTTPS_DEMO_TASK_PRIO             38
-#define HTTPS_DEMO_TASK_SIZE             1024
-#define HTTPS_DEMO_QUEUE_SIZE            4
+#define HTTPS_DEMO_TASK_PRIO 38
+#define HTTPS_DEMO_TASK_SIZE 1024
+#define HTTPS_DEMO_QUEUE_SIZE 4
 
-#define HTTPS_RECV_BUF_LEN_MAX           1024
+#define HTTPS_RECV_BUF_LEN_MAX 1024
 
-#define HTTPS_DEMO_CMD_START             0x1
+#define HTTPS_DEMO_CMD_START 0x1
 
-#define HTTPS_DEMO_SERVER               "www.tencent.com"
-#define HTTPS_DEMO_PORT                  443
+#define HTTPS_DEMO_SERVER "www.tencent.com"
+#define HTTPS_DEMO_PORT 443
 
 static bool https_demo_inited = FALSE;
 static OS_STK https_demo_task_stk[HTTPS_DEMO_TASK_SIZE];
 static tls_os_queue_t *https_demo_task_queue = NULL;
 
 static const char *https_request = "GET /legal/html/zh-cn/index.html HTTP/1.0\r\n"
-                                   "Host: "HTTPS_DEMO_SERVER"\r\n"
+                                   "Host: " HTTPS_DEMO_SERVER "\r\n"
                                    "User-Agent: W60X\r\n"
                                    "\r\n";
 
@@ -52,7 +52,7 @@ static void https_demo_net_status(u8 status)
 {
     struct netif *netif = tls_get_netif();
 
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_FAILED:
         wm_printf("sta join net failed\n");
@@ -87,18 +87,18 @@ static void https_demo_task(void *p)
         tls_os_queue_send(https_demo_task_queue, (void *)HTTPS_DEMO_CMD_START, 0);
     }
 
-    for( ; ; )
+    for (;;)
     {
         ret = tls_os_queue_receive(https_demo_task_queue, (void **)&msg, 0, 0);
         if (!ret)
         {
-            switch((u32)msg)
+            switch ((u32)msg)
             {
             case HTTPS_DEMO_CMD_START:
                 do
                 {
                     hp = gethostbyname(HTTPS_DEMO_SERVER);
-                    if (hp == NULL )
+                    if (hp == NULL)
                     {
                         wm_printf("get address error\r\n");
                         break;
@@ -169,8 +169,7 @@ static void https_demo_task(void *p)
                             wm_printf("step 3: recvd https resp %d bytes [%s]\r\n", ret, recvbuf);
                             total += ret;
                         }
-                    }
-                    while (ret > 0);
+                    } while (ret > 0);
 
                     wm_printf("step 3: recvd https resp total %d bytes.\r\n", total);
 
@@ -179,8 +178,7 @@ static void https_demo_task(void *p)
                     close(fd);
 
                     wm_printf("\r\nhttps demo end.\r\n");
-                }
-                while (0);
+                } while (0);
 
                 break;
             default:
@@ -190,7 +188,6 @@ static void https_demo_task(void *p)
     }
 }
 
-
 //https request demo
 //This example should make STA connected to AP firstly, then access web page https://www.tencent.com/legal/html/zh-cn/index.html
 int https_demo(void)
@@ -198,8 +195,8 @@ int https_demo(void)
     if (!https_demo_inited)
     {
         tls_os_task_create(NULL, NULL, https_demo_task,
-                           NULL, (void *)https_demo_task_stk, /* task's stack start address */
-                           HTTPS_DEMO_TASK_SIZE * sizeof(u32),/* task's stack size, unit:byte */
+                           NULL, (void *)https_demo_task_stk,  /* task's stack start address */
+                           HTTPS_DEMO_TASK_SIZE * sizeof(u32), /* task's stack size, unit:byte */
                            HTTPS_DEMO_TASK_PRIO, 0);
 
         tls_os_queue_create(&https_demo_task_queue, HTTPS_DEMO_QUEUE_SIZE);
@@ -213,4 +210,3 @@ int https_demo(void)
 }
 
 #endif
-

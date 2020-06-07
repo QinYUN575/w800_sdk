@@ -33,7 +33,8 @@ static void demo_wps_netif_stataus_callbak(u8 status)
     {
         struct tls_ethif *ethif;
         ethif = tls_netif_get_ethif();
-        printf("NET UP OK,Local IP:%d.%d.%d.%d\r\n", ip4_addr1(ip_2_ip4(&ethif->ip_addr)), ip4_addr2(ip_2_ip4(&ethif->ip_addr)),
+        printf("NET UP OK,Local IP:%d.%d.%d.%d\r\n", ip4_addr1(ip_2_ip4(&ethif->ip_addr)), ip4_addr2(ip_2_ip4(&ethif->ip_addr)),
+
                ip4_addr3(ip_2_ip4(&ethif->ip_addr)), ip4_addr4(ip_2_ip4(&ethif->ip_addr)));
     }
     break;
@@ -53,16 +54,14 @@ int demo_wps_pbc(char *buf)
 
 #if TLS_CONFIG_WPS
     tls_wifi_set_oneshot_flag(0);
-    tls_netif_add_status_event(demo_wps_netif_stataus_callbak);/*register net status event*/
+    tls_netif_add_status_event(demo_wps_netif_stataus_callbak); /*register net status event*/
     ret = tls_wps_start_pbc();
 #endif
-    if(ret == WM_SUCCESS)
+    if (ret == WM_SUCCESS)
         printf("Start WPS pbc mode ... \n");
-
 
     return WM_SUCCESS;
 }
-
 
 int demo_wps_pin(char *buf)
 {
@@ -75,10 +74,10 @@ int demo_wps_pin(char *buf)
 
 #if TLS_CONFIG_WPS
     tls_wifi_set_oneshot_flag(0);
-    tls_netif_add_status_event(demo_wps_netif_stataus_callbak);/*register net status event*/
+    tls_netif_add_status_event(demo_wps_netif_stataus_callbak); /*register net status event*/
     ret = tls_wps_start_pin();
 #endif
-    if(ret == WM_SUCCESS)
+    if (ret == WM_SUCCESS)
         printf("Start WPS pin mode ... \n");
 
     return WM_SUCCESS;
@@ -89,10 +88,10 @@ int demo_wps_get_pin(char *buf)
 #if TLS_CONFIG_WPS
     u8 pin[WPS_PIN_LEN + 1];
 
-    if(!tls_wps_get_pin(pin))
+    if (!tls_wps_get_pin(pin))
         printf("Pin code: %s\n", pin);
 
-    if(!tls_wps_set_pin(pin, WPS_PIN_LEN))
+    if (!tls_wps_set_pin(pin, WPS_PIN_LEN))
         printf("Pin set correctly: %s\n", pin);
 #endif
 
@@ -100,4 +99,3 @@ int demo_wps_get_pin(char *buf)
 }
 
 #endif
-

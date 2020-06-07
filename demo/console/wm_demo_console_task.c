@@ -14,19 +14,18 @@
 #if DEMO_CONSOLE
 #include "wm_demo_console.h"
 
-#define    DEMO_TASK_SIZE      2048
-static tls_os_queue_t 	*demo_q = NULL;
-static OS_STK 			DemoTaskStk[DEMO_TASK_SIZE];
-static Demo_Console 	gstConsole;
-#define DEMO_CONSOLE_BUF_SIZE   512
+#define DEMO_TASK_SIZE 2048
+static tls_os_queue_t *demo_q = NULL;
+static OS_STK DemoTaskStk[DEMO_TASK_SIZE];
+static Demo_Console gstConsole;
+#define DEMO_CONSOLE_BUF_SIZE 512
 
 extern int strtodec(int *dec, char *str);
-
 
 void demo_console_malloc(void)
 {
     gstConsole.rx_buf = tls_mem_alloc(DEMO_CONSOLE_BUF_SIZE + 1);
-    if(NULL == gstConsole.rx_buf)
+    if (NULL == gstConsole.rx_buf)
     {
         printf("\nmalloc rx fail\n");
         return;
@@ -34,13 +33,13 @@ void demo_console_malloc(void)
     memset(gstConsole.rx_buf, 0, DEMO_CONSOLE_BUF_SIZE + 1);
 }
 
-s16 demo_console_rx(u16 len, void* user_data)
+s16 demo_console_rx(u16 len, void *user_data)
 {
     gstConsole.rx_data_len += len;
 
     if (gstConsole.MsgNum < 3)
     {
-        gstConsole.MsgNum ++;
+        gstConsole.MsgNum++;
         tls_os_queue_send(demo_q, (void *)1, 0);
     }
 
@@ -51,16 +50,16 @@ char *demo_cmd_get_first_comma(char *buf, int len)
 {
     char prec = '\0', curc;
     int n = 0;
-    if(len <= 0)
+    if (len <= 0)
         return NULL;
-    if(*buf == '"')
+    if (*buf == '"')
     {
-        for(n = 1; n < len; n++)
+        for (n = 1; n < len; n++)
         {
             curc = *(buf + n);
-            if(curc == ',' && prec == '"')
+            if (curc == ',' && prec == '"')
             {
-                if(n < 3 || *(buf + n - 2) != '\\')
+                if (n < 3 || *(buf + n - 2) != '\\')
                 {
                     return buf + n;
                 }
@@ -95,13 +94,13 @@ int demo_cmd_quotation_filter(u8 **keyInfo, u8 *inbuf)
         inbuf++; /* skip 1st <"> */
         len -= 1;
         *keyInfo = inbuf;
-        if((*(inbuf + len - 1) == '"') && (*(inbuf + len) == '\0'))
+        if ((*(inbuf + len - 1) == '"') && (*(inbuf + len) == '\0'))
         {
             *(inbuf + len - 1) = '\0';
             len -= 1;
-            for(i = 0; i < len; i++)
+            for (i = 0; i < len; i++)
             {
-                if(inbuf[i] == '\\')
+                if (inbuf[i] == '\\')
                 {
                     len -= 1;
                     memcpy(inbuf + i, inbuf + i + 1, len - i);
@@ -126,12 +125,12 @@ static int demo_call_fn(int (*fn)(), int *param, int count)
 {
     int ret;
 
-    if(NULL == fn || NULL == param)
+    if (NULL == fn || NULL == param)
     {
         return WM_FAILED;
     }
 
-    switch(count)
+    switch (count)
     {
     case 0:
         ret = (int)fn();
@@ -167,7 +166,7 @@ static int demo_call_fn(int (*fn)(), int *param, int count)
         ret = (int)fn(param[0], param[1], param[2], param[3], param[4], param[5], param[6], param[7], param[8], param[9]);
         break;
     default:
-        ret = (int)fn( );
+        ret = (int)fn();
         break;
     }
 
@@ -182,80 +181,79 @@ int demo_cmd_execute(Demo_Console *sys)
     int remain_len;
     int ret = 0;
 
-#define   MAX_DEMO_ARG 20
-    int   param[MAX_DEMO_ARG];
-    int   arg_count = 0;
+#define MAX_DEMO_ARG 20
+    int param[MAX_DEMO_ARG];
+    int arg_count = 0;
 
     u8 *ptmp_param = NULL;
 
     u8 *buf = NULL;
-	u8 *pparam_equal = NULL;
+    u8 *pparam_equal = NULL;
     u8 *pparam_begin = NULL;
     u8 *pparam_end = NULL;
     u8 *comma;
     u8 *arg[MAX_DEMO_ARG] = {NULL};
     int len;
-	u8 *strfirst = NULL;
-	u8 *str_r = NULL;
-	u8 *str_n = NULL;
+    u8 *strfirst = NULL;
+    u8 *str_r = NULL;
+    u8 *str_n = NULL;
 
-    for(i = 0; ; i++)
+    for (i = 0;; i++)
     {
-    	strfirst = (u8 *)strstr((char *)sys->rx_buf, console_tbl[i].cmd);	
+        strfirst = (u8 *)strstr((char *)sys->rx_buf, console_tbl[i].cmd);
         if (strfirst != NULL)
         {
-			/*remove \r\n from input string*/
-			str_r = (u8 *)strchr((char *)strfirst, '\r');
-			str_n = (u8 *)strchr((char *)strfirst, '\n');			
-			if (str_r&&(str_n == NULL))
-			{
-				if (str_r > strfirst)
-				{
-					strfirst[str_r - strfirst] = '\0';
-				}
-			}
-			else if ((str_r == NULL)&&str_n)
-			{
-				if (str_n > strfirst)
-				{
-					strfirst[str_n - strfirst] = '\0';
-				}				
-			}
-			else if (str_r && str_n)
-			{
-				if (((str_r > str_n) && (str_r > strfirst))
-					||((str_r < str_n) && (str_n > strfirst)))
-				{
-					strfirst[str_n - strfirst] = '\0';
-				}
-			}
+            /*remove \r\n from input string*/
+            str_r = (u8 *)strchr((char *)strfirst, '\r');
+            str_n = (u8 *)strchr((char *)strfirst, '\n');
+            if (str_r && (str_n == NULL))
+            {
+                if (str_r > strfirst)
+                {
+                    strfirst[str_r - strfirst] = '\0';
+                }
+            }
+            else if ((str_r == NULL) && str_n)
+            {
+                if (str_n > strfirst)
+                {
+                    strfirst[str_n - strfirst] = '\0';
+                }
+            }
+            else if (str_r && str_n)
+            {
+                if (((str_r > str_n) && (str_r > strfirst)) || ((str_r < str_n) && (str_n > strfirst)))
+                {
+                    strfirst[str_n - strfirst] = '\0';
+                }
+            }
 
             /*parser()*/
-			pparam_equal = (u8 *)strchr((char *)(sys->rx_buf + strlen(console_tbl[i].cmd)), '=');
-			pparam_begin = (u8 *)strchr((char *)(sys->rx_buf + strlen(console_tbl[i].cmd)), '(');
-			if (pparam_equal)
-			{
-				if (pparam_begin && (pparam_begin > pparam_equal))
-				{
-					if (pparam_equal - strfirst > strlen(console_tbl[i].cmd))
-					{
-						continue;
-					}
-				}
-			}
-			else
-			{
-				if (pparam_begin && (pparam_begin - strfirst > strlen(console_tbl[i].cmd)))
-				{
-					continue;
-				}
+            pparam_equal = (u8 *)strchr((char *)(sys->rx_buf + strlen(console_tbl[i].cmd)), '=');
+            pparam_begin = (u8 *)strchr((char *)(sys->rx_buf + strlen(console_tbl[i].cmd)), '(');
+            if (pparam_equal)
+            {
+                if (pparam_begin && (pparam_begin > pparam_equal))
+                {
+                    if (pparam_equal - strfirst > strlen(console_tbl[i].cmd))
+                    {
+                        continue;
+                    }
+                }
+            }
+            else
+            {
+                if (pparam_begin && (pparam_begin - strfirst > strlen(console_tbl[i].cmd)))
+                {
+                    continue;
+                }
 
-				/*if no '(', compare the cmd string with input string*/
-				if (!pparam_begin && (strlen((char *)strfirst) != strlen(console_tbl[i].cmd)))
-				{
-					continue;
-				}
-			}
+                /*if no '(', compare the cmd string with input string*/
+                if (!pparam_begin && (strlen((char *)strfirst) != strlen(console_tbl[i].cmd)))
+                {
+                    continue;
+                }
+            }
 
             pparam_end = (u8 *)strchr((char *)(pparam_begin + 1), ')');
             if (!pparam_begin && !pparam_end)
@@ -274,7 +272,7 @@ int demo_cmd_execute(Demo_Console *sys)
                     }
                 }
                 ret = demo_call_fn((int (*)())console_tbl[i].callfn, param, console_tbl[i].param_cnt);
-                if(WM_FAILED == ret)
+                if (WM_FAILED == ret)
                 {
                     printf("\nrun demo failed\n");
                 }
@@ -282,7 +280,7 @@ int demo_cmd_execute(Demo_Console *sys)
             }
             else if (pparam_begin && pparam_end && ((pparam_end - pparam_begin) > 0))
             {
-                remain_len =  pparam_end - pparam_begin;
+                remain_len = pparam_end - pparam_begin;
                 buf = pparam_begin + 1;
                 arg[0] = buf;
                 arg_count = 0;
@@ -297,7 +295,7 @@ int demo_cmd_execute(Demo_Console *sys)
                         /* last parameter */
                         *(u8 *)pparam_end = '\0';
                         remain_len -= (pparam_end - buf);
-                        if(remain_len <= 1)
+                        if (remain_len <= 1)
                             break;
                         if (pparam_end != buf)
                             arg_count++;
@@ -316,19 +314,19 @@ int demo_cmd_execute(Demo_Console *sys)
                 }
                 for (j = 0; j <= arg_count; j++)
                 {
-                    while(' ' == *(arg[j]))
+                    while (' ' == *(arg[j]))
                     {
-                        arg[j] ++;
+                        arg[j]++;
                     }
                     len = strlen((char *)arg[j]);
-                    while(len > 0 && ' ' == *(arg[j] + len - 1))
+                    while (len > 0 && ' ' == *(arg[j] + len - 1))
                     {
                         *(arg[j] + len - 1) = 0;
-                        len --;
+                        len--;
                     }
                     if (!((console_tbl[i].type >> j) & 0x1))
                     {
-                        if(0 == len)
+                        if (0 == len)
                             param[j] = (int)NULL;
                         else
                         {
@@ -338,7 +336,7 @@ int demo_cmd_execute(Demo_Console *sys)
                     }
                     else
                     {
-                        if(0 == len)
+                        if (0 == len)
                             param[j] = -1;
                         else
                         {
@@ -364,7 +362,7 @@ int demo_cmd_execute(Demo_Console *sys)
                 }
 
                 ret = demo_call_fn((int (*)())console_tbl[i].callfn, param, console_tbl[i].param_cnt);
-                if(WM_FAILED == ret)
+                if (WM_FAILED == ret)
                 {
                     printf("\nrun demo failed\n");
                 }
@@ -386,7 +384,7 @@ int demo_cmd_execute(Demo_Console *sys)
             }
         }
 
-        if(strstr(console_tbl[i].cmd, "lastcmd") != NULL)	//last command
+        if (strstr(console_tbl[i].cmd, "lastcmd") != NULL) //last command
         {
             /*wrong cmd parameter,discard this cmd*/
             //demo_console_show_help(NULL);
@@ -396,7 +394,6 @@ int demo_cmd_execute(Demo_Console *sys)
 
     return ifcmd;
 }
-
 
 //console task use UART0 as communication port with PC
 void demo_console_task(void *sdata)
@@ -408,33 +405,33 @@ void demo_console_task(void *sdata)
     demo_console_malloc();
     gstConsole.rptr = 0;
     tls_uart_set_baud_rate(TLS_UART_0, 115200);
-	tls_uart_rx_callback_register(TLS_UART_0, demo_console_rx, NULL);
+    tls_uart_rx_callback_register(TLS_UART_0, demo_console_rx, NULL);
 
-    for(;;)
+    for (;;)
     {
         tls_os_queue_receive(demo_q, (void **)&msg, 0, 0);
-        switch((u32)msg)
+        switch ((u32)msg)
         {
         case 1:
             ret = tls_uart_read(TLS_UART_0, gstConsole.rx_buf + gstConsole.rptr, gstConsole.rx_data_len);
-            if(ret <= 0)
+            if (ret <= 0)
                 break;
             gstConsole.rx_data_len -= ret;
             gstConsole.rptr += ret;
-            ret = demo_cmd_execute(&gstConsole);	//parse command and execute if needed
-            if((DEMO_CONSOLE_CMD == ret) || (DEMO_CONSOLE_WRONG_CMD == ret))	
+            ret = demo_cmd_execute(&gstConsole); //parse command and execute if needed
+            if ((DEMO_CONSOLE_CMD == ret) || (DEMO_CONSOLE_WRONG_CMD == ret))
             {
                 /*modify*/
-                memset(gstConsole.rx_buf, 0, DEMO_CONSOLE_BUF_SIZE);	/*After command finished transfering, clear buffer*/
+                memset(gstConsole.rx_buf, 0, DEMO_CONSOLE_BUF_SIZE); /*After command finished transfering, clear buffer*/
                 gstConsole.rptr = 0;
             }
-            else if(DEMO_CONSOLE_SHORT_CMD == ret)
+            else if (DEMO_CONSOLE_SHORT_CMD == ret)
             {
                 //param not passed all, do nothing.
             }
 
-            if(gstConsole.MsgNum)
-                gstConsole.MsgNum --;
+            if (gstConsole.MsgNum)
+                gstConsole.MsgNum--;
             break;
         default:
             break;
@@ -454,6 +451,4 @@ void CreateDemoTask(void)
                        0);
 }
 
-
-#endif	//DEMO_CONSOLE
-
+#endif //DEMO_CONSOLE

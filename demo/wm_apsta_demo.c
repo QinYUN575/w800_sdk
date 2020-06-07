@@ -20,26 +20,25 @@
 
 #if DEMO_APSTA
 
-#define         APSTA_DEMO_TASK_PRIO             38
-#define         APSTA_DEMO_TASK_SIZE             256
-#define         APSTA_DEMO_QUEUE_SIZE            4
+#define APSTA_DEMO_TASK_PRIO 38
+#define APSTA_DEMO_TASK_SIZE 256
+#define APSTA_DEMO_QUEUE_SIZE 4
 
 static bool ApstaDemoIsInit = false;
-static OS_STK   ApstaDemoTaskStk[APSTA_DEMO_TASK_SIZE];
+static OS_STK ApstaDemoTaskStk[APSTA_DEMO_TASK_SIZE];
 static tls_os_queue_t *ApstaDemoTaskQueue = NULL;
 
-#define         APSTA_DEMO_CMD_SOFTAP_CREATE        0x0
-#define         APSTA_DEMO_CMD_STA_JOIN_NET         0x1
-#define         APSTA_DEMO_CMD_SOFTAP_CLOSE         0x2
+#define APSTA_DEMO_CMD_SOFTAP_CREATE 0x0
+#define APSTA_DEMO_CMD_STA_JOIN_NET 0x1
+#define APSTA_DEMO_CMD_SOFTAP_CLOSE 0x2
 
-#define         APSTA_DEMO_CMD_SOCKET_DEMO          0x3
+#define APSTA_DEMO_CMD_SOCKET_DEMO 0x3
 
-#define         APSTA_DEMO_SOCKET_DEMO_REMOTE_PORT  65530
-#define         APSTA_DEMO_SOCKET_DEMO_LOCAL_PORT   65531
+#define APSTA_DEMO_SOCKET_DEMO_REMOTE_PORT 65530
+#define APSTA_DEMO_SOCKET_DEMO_LOCAL_PORT 65531
 
 extern u8 *wpa_supplicant_get_mac(void);
 extern u8 *hostapd_get_mac(void);
-
 
 static char apsta_demo_ssid[33];
 static char apsta_demo_pwd[65];
@@ -55,7 +54,7 @@ static void apsta_demo_net_status(u8 status)
 {
     struct netif *netif = tls_get_netif();
 
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_FAILED:
         wm_printf("sta join net failed\n");
@@ -107,9 +106,9 @@ static int soft_ap_demo(char *apssid, char *appwd)
     }
 
     apinfo.encrypt = strlen(appwd) ? IEEE80211_ENCRYT_CCMP_WPA2 : IEEE80211_ENCRYT_NONE;
-    apinfo.channel = 11; /*channel*/
-    apinfo.keyinfo.format = 1; /*format:0,hex, 1,ascii*/
-    apinfo.keyinfo.index = 1;  /*wep index*/
+    apinfo.channel = 11;                    /*channel*/
+    apinfo.keyinfo.format = 1;              /*format:0,hex, 1,ascii*/
+    apinfo.keyinfo.index = 1;               /*wep index*/
     apinfo.keyinfo.key_len = strlen(appwd); /*key length*/
     MEMCPY(apinfo.keyinfo.key, appwd, strlen(appwd));
 
@@ -124,7 +123,7 @@ static int soft_ap_demo(char *apssid, char *appwd)
     ipinfo.netmask[3] = 0;
     MEMCPY(ipinfo.dnsname, "local.wm", sizeof("local.wm"));
 
-    ret = tls_wifi_softap_create((struct tls_softap_info_t * )&apinfo, (struct tls_ip_info_t * )&ipinfo);
+    ret = tls_wifi_softap_create((struct tls_softap_info_t *)&apinfo, (struct tls_ip_info_t *)&ipinfo);
     wm_printf("\nap create %s ! \n", (ret == WM_SUCCESS) ? "Successfully" : "Error");
 
     return ret;
@@ -155,11 +154,11 @@ static void init_wifi_config(void)
 
     tls_wifi_set_oneshot_flag(0);
 
-    tls_param_get(TLS_PARAM_ID_WPROTOCOL, (void *) &wireless_protocol, TRUE);
+    tls_param_get(TLS_PARAM_ID_WPROTOCOL, (void *)&wireless_protocol, TRUE);
     if (TLS_PARAM_IEEE80211_INFRA != wireless_protocol)
     {
         wireless_protocol = TLS_PARAM_IEEE80211_INFRA;
-        tls_param_set(TLS_PARAM_ID_WPROTOCOL, (void *) &wireless_protocol, FALSE);
+        tls_param_set(TLS_PARAM_ID_WPROTOCOL, (void *)&wireless_protocol, FALSE);
     }
 
     tls_param_get(TLS_PARAM_ID_BRDSSID, (void *)&ssid_set, (bool)0);
@@ -193,8 +192,8 @@ static void apsta_demo_socket_demo(void)
     int i;
     int ret;
     int skt;
-    u8  *mac;
-    u8  *mac2;
+    u8 *mac;
+    u8 *mac2;
     struct netif *netif;
     struct sockaddr_in addr;
 
@@ -223,7 +222,7 @@ static void apsta_demo_socket_demo(void)
     addr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
     addr.sin_port = htons(APSTA_DEMO_SOCKET_DEMO_REMOTE_PORT);
 
-    mac   = wpa_supplicant_get_mac();
+    mac = wpa_supplicant_get_mac();
 
     for (i = 0; i < 60; i++)
     {
@@ -233,8 +232,7 @@ static void apsta_demo_socket_demo(void)
 
     close(skt);
 
-
-	/*broadcast message at current soft AP*/
+    /*broadcast message at current soft AP*/
     printf("broadcast send mac in softap's bbs...\n");
     skt = socket(AF_INET, SOCK_DGRAM, 0);
     if (skt < 0)
@@ -253,7 +251,7 @@ static void apsta_demo_socket_demo(void)
     }
 
     ret = setsockopt(skt, IPPROTO_IP, IP_MULTICAST_IF, &addr.sin_addr, sizeof(struct in_addr));
-    if(0 != ret)
+    if (0 != ret)
     {
         close(skt);
         return;
@@ -284,12 +282,12 @@ static void apsta_demo_task(void *p)
     int ret;
     void *msg;
 
-    for( ; ; )
+    for (;;)
     {
         ret = tls_os_queue_receive(ApstaDemoTaskQueue, (void **)&msg, 0, 0);
         if (!ret)
         {
-            switch((u32)msg)
+            switch ((u32)msg)
             {
             case APSTA_DEMO_CMD_STA_JOIN_NET:
                 connect_wifi_demo(apsta_demo_ssid, apsta_demo_pwd);
@@ -309,7 +307,6 @@ static void apsta_demo_task(void *p)
         }
     }
 }
-
 
 //apsta demo
 //Command as:t-apsta("ssid","pwd", "apsta", "appwd");
@@ -335,8 +332,8 @@ int apsta_demo(char *ssid, char *pwd, char *apssid, char *appwd)
         init_wifi_config();
 
         tls_os_task_create(NULL, NULL, apsta_demo_task,
-                           (void *)0, (void *)ApstaDemoTaskStk,/* task's stack start address */
-                           APSTA_DEMO_TASK_SIZE * sizeof(u32), /* task's stack size, unit:byte */
+                           (void *)0, (void *)ApstaDemoTaskStk, /* task's stack start address */
+                           APSTA_DEMO_TASK_SIZE * sizeof(u32),  /* task's stack size, unit:byte */
                            APSTA_DEMO_TASK_PRIO, 0);
 
         tls_os_queue_create(&ApstaDemoTaskQueue, APSTA_DEMO_QUEUE_SIZE);

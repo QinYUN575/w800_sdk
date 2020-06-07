@@ -14,20 +14,19 @@
 #include "wm_sockets.h"
 
 #if DEMO_UDP
-#define DEMO_UDP_BROADCAST          0
-#define DEMO_UDP_UNICAST                1
-#define DEMO_UDP_MUTICAST               2
+#define DEMO_UDP_BROADCAST 0
+#define DEMO_UDP_UNICAST 1
+#define DEMO_UDP_MUTICAST 2
 
-#define     DEMO_UDP_TASK_SIZE      512
-#define     DEMO_UDP_BUF_SIZE            1024
+#define DEMO_UDP_TASK_SIZE 512
+#define DEMO_UDP_BUF_SIZE 1024
 
-#define DEMO_UDP_LOCAL_PORT         3000
+#define DEMO_UDP_LOCAL_PORT 3000
 
 static u8 MCASTIP[4] = {224, 1, 2, 1};
 
-static OS_STK   udp_task_stk[DEMO_UDP_TASK_SIZE];
-static OS_STK   udp_rcv_task_stk[DEMO_UDP_TASK_SIZE];
-
+static OS_STK udp_task_stk[DEMO_UDP_TASK_SIZE];
+static OS_STK udp_rcv_task_stk[DEMO_UDP_TASK_SIZE];
 
 /**
  * @typedef struct demo_udp
@@ -53,7 +52,6 @@ ST_Demo_Udp *demo_udp = NULL;
 
 static void demo_udp_task(void *sdata);
 
-
 int create_udp_socket_demo(void)
 {
     struct sockaddr_in pin;
@@ -62,17 +60,18 @@ int create_udp_socket_demo(void)
     int loop = 0;
 
     ethif = tls_netif_get_ethif();
-    printf("local ip : %d.%d.%d.%d\n",  ip4_addr1(ip_2_ip4(&ethif->ip_addr)), ip4_addr2(ip_2_ip4(&ethif->ip_addr)),
+    printf("local ip : %d.%d.%d.%d\n", ip4_addr1(ip_2_ip4(&ethif->ip_addr)), ip4_addr2(ip_2_ip4(&ethif->ip_addr)),
+
            ip4_addr3(ip_2_ip4(&ethif->ip_addr)), ip4_addr4(ip_2_ip4(&ethif->ip_addr)));
     demo_udp->socket_num = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     memset(&pin, 0, sizeof(struct sockaddr_in));
-    pin.sin_family = AF_INET;               
-    pin.sin_addr.s_addr = (u32)0x00000000UL;        //IPADDR_ANY
+    pin.sin_family = AF_INET;
+    pin.sin_addr.s_addr = (u32)0x00000000UL; //IPADDR_ANY
     pin.sin_port = htons(DEMO_UDP_LOCAL_PORT);
 
     printf("local port :%d\n", DEMO_UDP_LOCAL_PORT);
-    if (bind(demo_udp->socket_num, (struct sockaddr *) &pin, sizeof(pin)) == -1)
+    if (bind(demo_udp->socket_num, (struct sockaddr *)&pin, sizeof(pin)) == -1)
     {
         printf("bind err\n");
         closesocket(demo_udp->socket_num);
@@ -96,7 +95,7 @@ int create_udp_socket_demo(void)
             closesocket(demo_udp->socket_num);
             return WM_FAILED;
         }
-        MEMCPY((char *) & (demo_udp->mreq.imr_multiaddr.s_addr), (char *)MCASTIP, 4);
+        MEMCPY((char *)&(demo_udp->mreq.imr_multiaddr.s_addr), (char *)MCASTIP, 4);
         demo_udp->mreq.imr_interface.s_addr = htonl(0x00000000UL);
         //join muticast group
         if (setsockopt(demo_udp->socket_num, IPPROTO_IP, IP_ADD_MEMBERSHIP, &(demo_udp->mreq), sizeof(demo_udp->mreq)) < 0)
@@ -111,7 +110,6 @@ int create_udp_socket_demo(void)
     return WM_SUCCESS;
 }
 
-
 static void demo_udp_recv_task(void *sdata)
 {
     ST_Demo_Udp *udp = (ST_Demo_Udp *)sdata;
@@ -119,7 +117,7 @@ static void demo_udp_recv_task(void *sdata)
     struct sockaddr_in pin;
     socklen_t addrlen = sizeof(struct sockaddr);
 
-    for(;;)
+    for (;;)
     {
         if (udp->socket_ok)
         {
@@ -187,16 +185,16 @@ int socket_udp_demo(int cast_mode, int port, char *ip)
         return WM_FAILED;
     }
     printf("udp demo,cast:%d, port:%d\n", cast_mode, port);
-    if(-1 == cast_mode)
+    if (-1 == cast_mode)
     {
         cast_mode = DEMO_UDP_BROADCAST;
     }
-    if(-1 == port || port > 65536)
+    if (-1 == port || port > 65536)
     {
         printf("port err\n");
         return WM_FAILED;
     }
-    if(NULL == ip)
+    if (NULL == ip)
     {
         if (DEMO_UDP_UNICAST == cast_mode)
         {
@@ -231,8 +229,8 @@ int socket_udp_demo(int cast_mode, int port, char *ip)
         tls_os_task_create(NULL, NULL,
                            demo_udp_task,
                            (void *)demo_udp,
-                           (void *)udp_task_stk,          /* task's stack start address */
-                           DEMO_UDP_TASK_SIZE*sizeof(u32),            /* task's stack size, unit:byte */
+                           (void *)udp_task_stk,             /* task's stack start address */
+                           DEMO_UDP_TASK_SIZE * sizeof(u32), /* task's stack size, unit:byte */
                            DEMO_UDP_TASK_PRIO,
                            0);
 
@@ -240,8 +238,8 @@ int socket_udp_demo(int cast_mode, int port, char *ip)
         tls_os_task_create(NULL, NULL,
                            demo_udp_recv_task,
                            (void *)demo_udp,
-                           (void *)udp_rcv_task_stk,      /* task's stack start address */
-                           DEMO_UDP_TASK_SIZE*sizeof(u32),            /* task's stack size, unit:byte */
+                           (void *)udp_rcv_task_stk,         /* task's stack start address */
+                           DEMO_UDP_TASK_SIZE * sizeof(u32), /* task's stack size, unit:byte */
                            DEMO_UDP_RECEIVE_TASK_PRIO,
                            0);
     }
@@ -264,10 +262,9 @@ _error:
     return WM_FAILED;
 }
 
-
-static void udp_net_status_changed_event(u8 status )
+static void udp_net_status_changed_event(u8 status)
 {
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_FAILED:
         tls_os_queue_send(demo_udp->udp_q, (void *)DEMO_MSG_WJOIN_FAILD, 0);
@@ -292,7 +289,7 @@ static void demo_udp_task(void *sdata)
     int ret;
     struct sockaddr_in pin;
 
-    if(ethif->status)	/*connected to ap and get IP*/
+    if (ethif->status) /*connected to ap and get IP*/
     {
         tls_os_queue_send(udp->udp_q, (void *)DEMO_MSG_SOCKET_CREATE, 0);
     }
@@ -303,19 +300,19 @@ static void demo_udp_task(void *sdata)
         tls_param_get(TLS_PARAM_ID_IP, &ip_param, TRUE);
         ip_param.dhcp_enable = TRUE;
         tls_param_set(TLS_PARAM_ID_IP, &ip_param, TRUE);
-        tls_wifi_set_oneshot_flag(1);		 /*Enable oneshot configuration*/
+        tls_wifi_set_oneshot_flag(1); /*Enable oneshot configuration*/
         printf("\nwait one shot......\n");
     }
     tls_netif_add_status_event(udp_net_status_changed_event);
 
     memset(&pin, 0, sizeof(struct sockaddr_in));
-    pin.sin_family = AF_INET;              
+    pin.sin_family = AF_INET;
 
     for (;;)
     {
         tls_os_queue_receive(udp->udp_q, (void **)&msg, 0, 0);
         //printf("\n msg =%d\n",msg);
-        switch((u32)msg)
+        switch ((u32)msg)
         {
         case DEMO_MSG_WJOIN_SUCCESS:
             break;
@@ -325,7 +322,7 @@ static void demo_udp_task(void *sdata)
             break;
 
         case DEMO_MSG_WJOIN_FAILD:
-            if(udp->socket_num > 0)
+            if (udp->socket_num > 0)
             {
                 udp->socket_num = 0;
                 udp->socket_ok = FALSE;
@@ -340,10 +337,9 @@ static void demo_udp_task(void *sdata)
             {
                 len = DEMO_UDP_BUF_SIZE;
             }
-            else if(udp->snd_data_len != 0)
+            else if (udp->snd_data_len != 0)
             {
-                len = (udp->snd_data_len > DEMO_UDP_BUF_SIZE) ?
-                      DEMO_UDP_BUF_SIZE : udp->snd_data_len;
+                len = (udp->snd_data_len > DEMO_UDP_BUF_SIZE) ? DEMO_UDP_BUF_SIZE : udp->snd_data_len;
             }
             else
             {
@@ -353,11 +349,11 @@ static void demo_udp_task(void *sdata)
 
             if (DEMO_UDP_BROADCAST == udp->cast_mode)
             {
-                pin.sin_addr.s_addr = htonl(0xffffffffUL);  //IPADDR_BROADCAST
+                pin.sin_addr.s_addr = htonl(0xffffffffUL); //IPADDR_BROADCAST
             }
             else if (DEMO_UDP_MUTICAST == udp->cast_mode)
             {
-                MEMCPY((char *) & (pin.sin_addr.s_addr), (char *)MCASTIP, 4);
+                MEMCPY((char *)&(pin.sin_addr.s_addr), (char *)MCASTIP, 4);
             }
             else
             {
@@ -390,14 +386,13 @@ static void demo_udp_task(void *sdata)
         case DEMO_MSG_SOCKET_ERR:
             tls_os_time_delay(200);
             printf("\nsocket err\n");
-            create_udp_socket_demo( );
+            create_udp_socket_demo();
             break;
 
         default:
             break;
         }
     }
-
 }
 
 #endif

@@ -5,9 +5,7 @@
 #include "lwip/inet.h"
 #include "wm_cmdp.h"
 
-
 #if (DEMO_IPERF_AUTO_TEST && TLS_CONFIG_WIFI_PERF_TEST && TLS_IPERF_AUTO_TEST)
-
 
 u8 iperf_test_info[15] = {0};
 
@@ -15,7 +13,7 @@ u8 iperf_test_rev[10] = {0};
 u8 sever_ip[16];
 u16 iperfLocalPort = 0;
 
-extern 	tls_os_queue_t *tht_q;
+extern tls_os_queue_t *tht_q;
 extern struct tht_param gThtSys;
 extern void CreateThroughputTask(void);
 
@@ -25,7 +23,7 @@ void iperf_start(u8 mode, u8 chnl, u8 interval, u32 maxcnt, u16 localport, u32 s
 
     CreateThroughputTask();
 
-    if(mode)
+    if (mode)
     {
         tht->role = 's';
     }
@@ -51,7 +49,6 @@ void iperf_start(u8 mode, u8 chnl, u8 interval, u32 maxcnt, u16 localport, u32 s
     tls_os_queue_send(tht_q, (void *)TLS_MSG_WIFI_PERF_TEST_START, 0);
 }
 
-
 int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate, u8 interval, u32 maxcnt)
 {
     int ret = -1;
@@ -61,7 +58,6 @@ int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate
     u32 severIp;
     struct tls_cmd_wl_hw_mode_t hw_mode;
     struct tls_cmd_link_status_t lk;
-
 
     memset(&hw_mode, 0, sizeof(struct tls_cmd_wl_hw_mode_t));
     hw_mode.hw_mode = 2;
@@ -76,13 +72,13 @@ int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate
     printf("\nssid:%s\n", ssid);
 
     ret = tls_wifi_connect(ssid, strlen((char *)ssid), NULL, 0);
-    while(WM_WIFI_JOINED != tls_wifi_get_state())
+    while (WM_WIFI_JOINED != tls_wifi_get_state())
     {
         tls_os_time_delay(2);
     }
 
     memset(&lk, 0, sizeof(struct tls_cmd_link_status_t));
-    while(lk.ip[0] == 0)
+    while (lk.ip[0] == 0)
     {
         tls_cmd_get_link_status(&lk);
         tls_os_time_delay(2);
@@ -92,21 +88,22 @@ int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate
     destip[3] = remoteIP;
     memcpy(&severIp, &destip[0], 4);
 
-    iperfLocalPort ++;
-    if(iperfLocalPort > 20)
+    iperfLocalPort++;
+    if (iperfLocalPort > 20)
     {
         iperfLocalPort = 0;
     }
 
     ipefTestSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if(ipefTestSock < 0)
+    if (ipefTestSock < 0)
     {
         printf("iperf test socket creat err\n");
-        return WM_FAILED;;
+        return WM_FAILED;
+        ;
     }
 
-    if(csmode)		//iperf ×÷Îª·þÎñ¶Ë
+    if (csmode) //iperf ä½œä¸ºæœåŠ¡ç«¯
     {
         printf("iperf test sever start\n");
         iperf_start(csmode, destip[2] - 100, interval, maxcnt, iperfLocalPort, severIp);
@@ -135,7 +132,7 @@ int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate
     while (0 != connect(ipefTestSock, (const struct sockaddr *)&iperfAddr, sizeof(const struct sockaddr_in)))
     {
         printf("iperf test connect err\n");
-        if(i++ > 5)
+        if (i++ > 5)
         {
             closesocket(ipefTestSock);
             return WM_FAILED;
@@ -149,21 +146,21 @@ int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate
     iperf_test_info[7] = interval;
     memcpy(&iperf_test_info[8], &maxcnt, 4);
 
-    if(send(ipefTestSock, (const char *)iperf_test_info, 12, 0) < 0)
+    if (send(ipefTestSock, (const char *)iperf_test_info, 12, 0) < 0)
     {
         printf("iperf test tcp send err\n");
         closesocket(ipefTestSock);
         return WM_FAILED;
     }
 
-    if(csmode == 0)
+    if (csmode == 0)
     {
         ret = recv(ipefTestSock, iperf_test_rev, 10, 0);
-        if(ret > 0)
+        if (ret > 0)
         {
             ret = strcmp((const char *)iperf_test_rev, "OK");
             closesocket(ipefTestSock);
-            if(ret == 0)
+            if (ret == 0)
             {
                 printf("iperf test client start\n");
                 tls_os_time_delay(100);
@@ -185,8 +182,4 @@ int demo_iperf_auto_test(u8 *ssid, u8 csmode, u8 remoteIP, u8 bgnrate, u8 pcrate
     return WM_SUCCESS;
 }
 
-
-
 #endif
-
-

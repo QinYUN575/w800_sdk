@@ -12,14 +12,13 @@
 * Date : 2018-12-03
 *****************************************************************************/
 
-
 #include <string.h>
 #include "wm_include.h"
 #include "tls_wireless.h"
 
 #if DEMO_SCAN
 
-static  char *scan_privacy_string(u8 privacy)
+static char *scan_privacy_string(u8 privacy)
 {
     char *sec;
 
@@ -66,7 +65,7 @@ static  char *scan_privacy_string(u8 privacy)
     return sec;
 }
 
-static  char *scan_mode_string(u8 mode)
+static char *scan_mode_string(u8 mode)
 {
     char *ap_mode;
 
@@ -85,7 +84,6 @@ static  char *scan_mode_string(u8 mode)
     }
     return ap_mode;
 }
-
 
 static void wifi_scan_handler(void)
 {
@@ -106,7 +104,7 @@ static void wifi_scan_handler(void)
     }
 
     buf1 = tls_mem_alloc(300);
-    if(!buf1)
+    if (!buf1)
     {
         goto end;
     }
@@ -123,7 +121,7 @@ static void wifi_scan_handler(void)
 
     printf("\n");
 
-    for(i = 0; i < wsr->count; i++)
+    for (i = 0; i < wsr->count; i++)
     {
         j = sprintf(buf1, "bssid:%02X%02X%02X%02X%02X%02X, ", bss_info->bssid[0], bss_info->bssid[1],
                     bss_info->bssid[2], bss_info->bssid[3], bss_info->bssid[4], bss_info->bssid[5]);
@@ -139,15 +137,15 @@ static void wifi_scan_handler(void)
 
         printf("%s\n", buf1);
 
-        bss_info ++;
+        bss_info++;
     }
 
 end:
-    if(buf)
+    if (buf)
     {
         tls_mem_free(buf);
     }
-    if(buf1)
+    if (buf1)
     {
         tls_mem_free(buf1);
     }
@@ -161,4 +159,3 @@ int scan_demo(void)
 }
 
 #endif
-

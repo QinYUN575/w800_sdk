@@ -24,27 +24,27 @@
 
 #if DEMO_MQTT
 
-#define MQTT_DEMO_TASK_PRIO             39
-#define MQTT_DEMO_TASK_SIZE             512
-#define MQTT_DEMO_QUEUE_SIZE            4
+#define MQTT_DEMO_TASK_PRIO 39
+#define MQTT_DEMO_TASK_SIZE 512
+#define MQTT_DEMO_QUEUE_SIZE 4
 
-#define MQTT_DEMO_RECV_BUF_LEN_MAX      1024
+#define MQTT_DEMO_RECV_BUF_LEN_MAX 1024
 
-#define MQTT_DEMO_CMD_START             0x1
-#define MQTT_DEMO_CMD_HEART             0x2
-#define MQTT_DEMO_CMD_LOOP              0x3
+#define MQTT_DEMO_CMD_START 0x1
+#define MQTT_DEMO_CMD_HEART 0x2
+#define MQTT_DEMO_CMD_LOOP 0x3
 
-#define MQTT_DEMO_READ_TIMEOUT        (-1000)
+#define MQTT_DEMO_READ_TIMEOUT (-1000)
 
-#define MQTT_DEMO_READ_TIME_SEC         1
-#define MQTT_DEMO_READ_TIME_US          0
+#define MQTT_DEMO_READ_TIME_SEC 1
+#define MQTT_DEMO_READ_TIME_US 0
 
-#define MQTT_DEMO_CLIENT_ID            "wm_mqtt_client"
-#define MQTT_DEMO_TX_PUB_TOPIC         "winnermicro/mqtt_tx_demo"
-#define MQTT_DEMO_RX_PUB_TOPIC         "winnermicro/mqtt_rx_demo"
+#define MQTT_DEMO_CLIENT_ID "wm_mqtt_client"
+#define MQTT_DEMO_TX_PUB_TOPIC "winnermicro/mqtt_tx_demo"
+#define MQTT_DEMO_RX_PUB_TOPIC "winnermicro/mqtt_rx_demo"
 
-#define MQTT_DEMO_SERVER_ADDR          "mqtt.yichen.link"
-#define MQTT_DEMO_SERVER_PORT           3883
+#define MQTT_DEMO_SERVER_ADDR "mqtt.yichen.link"
+#define MQTT_DEMO_SERVER_PORT 3883
 
 static bool mqtt_demo_inited = FALSE;
 static OS_STK mqtt_demo_task_stk[MQTT_DEMO_TASK_SIZE];
@@ -64,7 +64,7 @@ static void mqtt_demo_net_status(u8 status)
 {
     struct netif *netif = tls_get_netif();
 
-    switch(status)
+    switch (status)
     {
     case NETIF_WIFI_JOIN_FAILED:
         wm_printf("sta join net failed\n");
@@ -108,8 +108,8 @@ static int mqtt_demo_read_packet(int sec, int us)
         struct timeval tmv;
 
         // Initialize the file descriptor set
-        FD_ZERO (&readfds);
-        FD_SET (mqtt_demo_socket_id, &readfds);
+        FD_ZERO(&readfds);
+        FD_SET(mqtt_demo_socket_id, &readfds);
 
         // Initialize the timeout data structure
         tmv.tv_sec = sec;
@@ -117,17 +117,16 @@ static int mqtt_demo_read_packet(int sec, int us)
 
         // select returns 0 if timeout, 1 if input available, -1 if error
         ret = select(mqtt_demo_socket_id + 1, &readfds, NULL, NULL, &tmv);
-        if(ret < 0)
+        if (ret < 0)
             return -2;
-        else if(ret == 0)
+        else if (ret == 0)
             return MQTT_DEMO_READ_TIMEOUT;
-
     }
 
     int total_bytes = 0, bytes_rcvd, packet_length;
     memset(mqtt_demo_packet_buffer, 0, sizeof(mqtt_demo_packet_buffer));
 
-    if((bytes_rcvd = recv(mqtt_demo_socket_id, (mqtt_demo_packet_buffer + total_bytes), MQTT_DEMO_RECV_BUF_LEN_MAX, 0)) <= 0)
+    if ((bytes_rcvd = recv(mqtt_demo_socket_id, (mqtt_demo_packet_buffer + total_bytes), MQTT_DEMO_RECV_BUF_LEN_MAX, 0)) <= 0)
     {
         //printf("%d, %d\r\n", bytes_rcvd, mqtt_demo_socket_id);
         return -1;
@@ -146,9 +145,9 @@ static int mqtt_demo_read_packet(int sec, int us)
     // total packet length = remaining length + byte 1 of fixed header + remaning length part of fixed header
     packet_length = rem_len + rem_len_bytes + 1;
 
-    while(total_bytes < packet_length) // Reading the packet
+    while (total_bytes < packet_length) // Reading the packet
     {
-        if((bytes_rcvd = recv(mqtt_demo_socket_id, (mqtt_demo_packet_buffer + total_bytes), MQTT_DEMO_RECV_BUF_LEN_MAX, 0)) <= 0)
+        if ((bytes_rcvd = recv(mqtt_demo_socket_id, (mqtt_demo_packet_buffer + total_bytes), MQTT_DEMO_RECV_BUF_LEN_MAX, 0)) <= 0)
             return -1;
         total_bytes += bytes_rcvd; // Keep tally of total bytes
     }
@@ -162,7 +161,7 @@ static int mqtt_demo_init_socket(mqtt_broker_handle_t *broker, const char *hostn
     struct hostent *hp;
 
     // Create the socket
-    if((mqtt_demo_socket_id = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    if ((mqtt_demo_socket_id = socket(PF_INET, SOCK_STREAM, 0)) < 0)
         return -1;
 
     // Disable Nagle Algorithm
@@ -174,7 +173,7 @@ static int mqtt_demo_init_socket(mqtt_broker_handle_t *broker, const char *hostn
 
     // query host ip start
     hp = gethostbyname(hostname);
-    if (hp == NULL )
+    if (hp == NULL)
     {
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
         return -2;
@@ -187,7 +186,7 @@ static int mqtt_demo_init_socket(mqtt_broker_handle_t *broker, const char *hostn
     memcpy(&(socket_address.sin_addr), hp->h_addr, hp->h_length);
 
     // Connect the socket
-    if((connect(mqtt_demo_socket_id, (struct sockaddr *)&socket_address, sizeof(socket_address))) < 0)
+    if ((connect(mqtt_demo_socket_id, (struct sockaddr *)&socket_address, sizeof(socket_address))) < 0)
     {
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
         return -1;
@@ -211,7 +210,7 @@ static int mqtt_demo_init(void)
 
     wm_printf("step2: establishing TCP connection.\r\n");
     ret = mqtt_demo_init_socket(&mqtt_demo_mqtt_broker, MQTT_DEMO_SERVER_ADDR, MQTT_DEMO_SERVER_PORT, mqtt_demo_mqtt_keepalive);
-    if(ret)
+    if (ret)
     {
         wm_printf("init_socket ret=%d\n", ret);
         return -4;
@@ -219,47 +218,46 @@ static int mqtt_demo_init(void)
 
     wm_printf("step3: establishing mqtt connection.\r\n");
     ret = mqtt_connect(&mqtt_demo_mqtt_broker);
-    if(ret)
+    if (ret)
     {
         wm_printf("mqtt_connect ret=%d\n", ret);
         return -5;
     }
 
     packet_length = mqtt_demo_read_packet(MQTT_DEMO_READ_TIME_SEC, MQTT_DEMO_READ_TIME_US);
-    if(packet_length < 0)
+    if (packet_length < 0)
     {
         wm_printf("Error(%d) on read packet!\n", packet_length);
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
         return -1;
     }
 
-    if(MQTTParseMessageType(mqtt_demo_packet_buffer) != MQTT_MSG_CONNACK)
+    if (MQTTParseMessageType(mqtt_demo_packet_buffer) != MQTT_MSG_CONNACK)
     {
         wm_printf("CONNACK expected!\n");
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
         return -2;
     }
 
-    if(mqtt_demo_packet_buffer[3] != 0x00)
+    if (mqtt_demo_packet_buffer[3] != 0x00)
     {
         wm_printf("CONNACK failed!\n");
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
         return -2;
     }
 
-
     wm_printf("step4: subscribe mqtt\r\n");
     mqtt_subscribe(&mqtt_demo_mqtt_broker, MQTT_DEMO_TX_PUB_TOPIC, &msg_id);
 
     packet_length = mqtt_demo_read_packet(MQTT_DEMO_READ_TIME_SEC, MQTT_DEMO_READ_TIME_US);
-    if(packet_length < 0)
+    if (packet_length < 0)
     {
         wm_printf("Error(%d) on read packet!\n", packet_length);
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
         return -1;
     }
 
-    if(MQTTParseMessageType(mqtt_demo_packet_buffer) != MQTT_MSG_SUBACK)
+    if (MQTTParseMessageType(mqtt_demo_packet_buffer) != MQTT_MSG_SUBACK)
     {
         wm_printf("SUBACK expected!\n");
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
@@ -267,7 +265,7 @@ static int mqtt_demo_init(void)
     }
 
     msg_id_rcv = mqtt_parse_msg_id(mqtt_demo_packet_buffer);
-    if(msg_id != msg_id_rcv)
+    if (msg_id != msg_id_rcv)
     {
         wm_printf("%d message id was expected, but %d message id was found!\n", msg_id, msg_id_rcv);
         mqtt_demo_close_socket(&mqtt_demo_mqtt_broker);
@@ -293,7 +291,7 @@ static int mqtt_demo_loop(void)
 
     counter++;
     packet_length = mqtt_demo_read_packet(0, 1);
-    if(packet_length > 0)
+    if (packet_length > 0)
     {
         //wm_printf("recvd Packet Header: 0x%x...\n", mqtt_demo_packet_buffer[0]);
 
@@ -317,7 +315,7 @@ static int mqtt_demo_loop(void)
     {
         tls_os_queue_send(mqtt_demo_task_queue, (void *)MQTT_DEMO_CMD_LOOP, 0);
     }
-    else if(packet_length == -1)
+    else if (packet_length == -1)
     {
         wm_printf("mqtt error:(%d), stop mqtt demo!\n", packet_length);
         tls_os_timer_stop(mqtt_demo_heartbeat_timer);
@@ -339,12 +337,12 @@ static void mqtt_demo_task(void *p)
         tls_os_queue_send(mqtt_demo_task_queue, (void *)MQTT_DEMO_CMD_START, 0);
     }
 
-    for ( ; ; )
+    for (;;)
     {
         ret = tls_os_queue_receive(mqtt_demo_task_queue, (void **)&msg, 0, 0);
         if (!ret)
         {
-            switch((u32)msg)
+            switch ((u32)msg)
             {
             case MQTT_DEMO_CMD_START:
                 do
@@ -353,8 +351,7 @@ static void mqtt_demo_task(void *p)
                     if (ret)
                         break;
                     tls_os_queue_send(mqtt_demo_task_queue, (void *)MQTT_DEMO_CMD_LOOP, 0);
-                }
-                while (0);
+                } while (0);
                 break;
             case MQTT_DEMO_CMD_HEART:
                 wm_printf("send heart ping\r\n");
@@ -370,12 +367,11 @@ static void mqtt_demo_task(void *p)
     }
 }
 
-
 //mqtt demo
-//²âÊÔ·şÎñÆ÷:mqtt.yichen.link:3883
-//·şÎñÆ÷¶ËÓÃÓÚ·¢ËÍµÄ¶©ÔÄÖ÷ÌâÎª:winnermicro/mqtt_tx_demo
-//·şÎñÆ÷¶ËÓÃÓÚ½ÓÊÕµÄ¶©ÔÄÖ÷ÌâÎª:winnermicro/mqtt_rx_demo
-//¹¤×÷Á÷³Ì: ½ÓÊÕµ½winnermicro/mqtt_tx_demoÍÆËÍµÄÏûÏ¢ºó´òÓ¡ÔÚÆÁÄ»ÉÏ£¬²¢ÔÙ´ÎÍÆËÍµ½winnermicro/mqtt_rx_demo
+//æµ‹è¯•æœåŠ¡å™¨:mqtt.yichen.link:3883
+//æœåŠ¡å™¨ç«¯ç”¨äºå‘é€çš„è®¢é˜…ä¸»é¢˜ä¸º:winnermicro/mqtt_tx_demo
+//æœåŠ¡å™¨ç«¯ç”¨äºæ¥æ”¶çš„è®¢é˜…ä¸»é¢˜ä¸º:winnermicro/mqtt_rx_demo
+//å·¥ä½œæµç¨‹: æ¥æ”¶åˆ°winnermicro/mqtt_tx_demoæ¨é€çš„æ¶ˆæ¯åæ‰“å°åœ¨å±å¹•ä¸Šï¼Œå¹¶å†æ¬¡æ¨é€åˆ°winnermicro/mqtt_rx_demo
 int mqtt_demo(void)
 {
     if (!mqtt_demo_inited)
@@ -396,4 +392,3 @@ int mqtt_demo(void)
 }
 
 #endif
-

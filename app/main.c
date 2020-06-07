@@ -10,16 +10,15 @@
 * Author : dave
 * 
 * Date : 2014-6-14
-*****************************************************************************/ 
+*****************************************************************************/
 #include "wm_include.h"
 
 void UserMain(void)
 {
-	printf("\n user task \n");
+    printf("\n user task \n");
 
 #if DEMO_CONSOLE
-	CreateDemoTask();
+    CreateDemoTask();
 #endif
-//用户自己的task
+    //鐢ㄦ埛鑷繁鐨則ask
 }
-

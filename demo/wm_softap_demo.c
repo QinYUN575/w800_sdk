@@ -32,7 +32,7 @@ static void demo_monitor_stalist_tim(void *ptmr, void *parg)
         if (totalstanum != stanum)
         {
             wm_printf("sta mac:\n");
-            for (i = 0; i < stanum ; i++)
+            for (i = 0; i < stanum; i++)
             {
                 wm_printf("%M\n", &stabuf[i * 6]);
             }
@@ -69,14 +69,14 @@ int demo_create_softap(u8 *ssid, u8 *key, int chan, int encrypt, int format)
         return WM_FAILED;
     }
 
-    tls_param_get(TLS_PARAM_ID_WPROTOCOL, (void *) &wireless_protocol, TRUE);
+    tls_param_get(TLS_PARAM_ID_WPROTOCOL, (void *)&wireless_protocol, TRUE);
     if (TLS_PARAM_IEEE80211_SOFTAP != wireless_protocol)
     {
         wireless_protocol = TLS_PARAM_IEEE80211_SOFTAP;
-        tls_param_set(TLS_PARAM_ID_WPROTOCOL, (void *) &wireless_protocol, FALSE);
+        tls_param_set(TLS_PARAM_ID_WPROTOCOL, (void *)&wireless_protocol, FALSE);
     }
 
-    tls_wifi_set_oneshot_flag(0);          /*disable oneshot*/
+    tls_wifi_set_oneshot_flag(0); /*disable oneshot*/
 
     tls_param_get(TLS_PARAM_ID_BRDSSID, (void *)&ssid_set, (bool)0);
     if (0 == ssid_set)
@@ -85,17 +85,16 @@ int demo_create_softap(u8 *ssid, u8 *key, int chan, int encrypt, int format)
         tls_param_set(TLS_PARAM_ID_BRDSSID, (void *)&ssid_set, (bool)1); /*set bssid broadcast flag*/
     }
 
-
     tls_wifi_disconnect();
 
     ssid_len = strlen((const char *)ssid);
     MEMCPY(apinfo->ssid, ssid, ssid_len);
     apinfo->ssid[ssid_len] = '\0';
 
-    apinfo->encrypt = encrypt;  /*0:open, 1:wep64, 2:wep128,3:TKIP WPA ,4: CCMP WPA, 5:TKIP WPA2 ,6: CCMP WPA2*/
-    apinfo->channel = chan; /*channel*/
-    apinfo->keyinfo.format = format; /*key's format:0-HEX, 1-ASCII*/
-    apinfo->keyinfo.index = 1;  /*wep key index*/
+    apinfo->encrypt = encrypt;                           /*0:open, 1:wep64, 2:wep128,3:TKIP WPA ,4: CCMP WPA, 5:TKIP WPA2 ,6: CCMP WPA2*/
+    apinfo->channel = chan;                              /*channel*/
+    apinfo->keyinfo.format = format;                     /*key's format:0-HEX, 1-ASCII*/
+    apinfo->keyinfo.index = 1;                           /*wep key index*/
     apinfo->keyinfo.key_len = strlen((const char *)key); /*key length*/
     MEMCPY(apinfo->keyinfo.key, key, apinfo->keyinfo.key_len);
     /*ip info:ipaddress, netmask, dns*/
